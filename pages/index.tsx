@@ -3,12 +3,16 @@ import type { NextPage } from "next";
 import { useState } from "react";
 import { RepoCard } from "../components/repocard";
 import { RepoInput } from "../components/repoinput";
+import Head from "next/head";
 
 const Index: NextPage = () => {
   const [repos, setRepos] = useState<{ owner: string; repo: string }[]>([]);
   const [error, setError] = useState<any>(null);
   return (
     <VStack h="100vh" p={{ base: 4, md: 10 }} gap={{ base: 5, md: 10 }}>
+      <Head>
+        <title>GitHub Repo Compare</title>
+      </Head>
       <RepoInput
         onSubmit={(newRepo) => {
           if (
