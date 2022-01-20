@@ -1,18 +1,35 @@
-import { Button, HStack, Input } from "@chakra-ui/react";
-import { FC, useState } from "react";
+import { Button, HStack, Input, useToast } from "@chakra-ui/react";
+import { FC, useContext, useState } from "react";
+import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import { OctokitContext } from "./octokitcontext";
 
 export const RepoInput: FC<{
-  onSubmit: ({ owner, repo }: { owner: string; repo: string }) => void;
-  isError: boolean;
-}> = ({ onSubmit, isError }) => {
+  onSubmit: (res: RestEndpointMethodTypes["repos"]["get"]["response"]) => void;
+}> = ({ onSubmit }) => {
   const [input, setInput] = useState("");
+  const [disabled, setDisabled] = useState(false);
+  const toast = useToast();
+  const octokit = useContext(OctokitContext);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!input.length || !input.includes("/")) return;
     const [owner, repo] = input.split("/");
     if (!owner.length || !repo.length) return;
-    onSubmit({ owner, repo });
     setInput("");
+    setDisabled(true);
+    try {
+      const res = await octokit.rest.repos.get({ owner, repo });
+      onSubmit(res);
+    } catch {
+      toast({
+        title: "Invalid Repo",
+        status: "error",
+        position: "top-start",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+    setDisabled(false);
   };
   return (
     <HStack maxW={{ base: undefined, md: "80%", lg: "50%" }} w="100%">
@@ -26,11 +43,10 @@ export const RepoInput: FC<{
           }
         }}
         value={input}
-        borderColor={isError ? "red.400" : undefined}
         placeholder="owner/repo"
-        flexGrow={1}
+        disabled={disabled}
       />
-      <Button onClick={handleSubmit} size="lg">
+      <Button onClick={handleSubmit} disabled={disabled} size="lg">
         Add
       </Button>
     </HStack>

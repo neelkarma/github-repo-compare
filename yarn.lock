@@ -2189,6 +2189,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-fns@npm:^2.28.0":
+  version: 2.28.0
+  resolution: "date-fns@npm:2.28.0"
+  checksum: a0516b2e4f99b8bffc6cc5193349f185f195398385bdcaf07f17c2c4a24473c99d933eb0018be4142a86a6d46cb0b06be6440ad874f15e795acbedd6fd727a1f
+  languageName: node
+  linkType: hard
+
 "debounce@npm:^1.2.1":
   version: 1.2.1
   resolution: "debounce@npm:1.2.1"
@@ -2846,6 +2853,7 @@ __metadata:
     "@fontsource/inter": ^4.5.1
     "@types/node": 17.0.10
     "@types/react": 17.0.38
+    date-fns: ^2.28.0
     eslint: 8.7.0
     eslint-config-next: 12.0.8
     framer-motion: ^5

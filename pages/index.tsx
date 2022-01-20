@@ -1,13 +1,15 @@
-import { HStack, VStack, Text } from "@chakra-ui/react";
+import { Wrap, VStack, Text, WrapItem } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import { useState } from "react";
 import { RepoCard } from "../components/repocard";
 import { RepoInput } from "../components/repoinput";
+import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 import Head from "next/head";
 
 const Index: NextPage = () => {
-  const [repos, setRepos] = useState<{ owner: string; repo: string }[]>([]);
-  const [error, setError] = useState<any>(null);
+  const [repos, setRepos] = useState<
+    RestEndpointMethodTypes["repos"]["get"]["response"][]
+  >([]);
   return (
     <VStack h="100vh" p={{ base: 4, md: 10 }} gap={{ base: 5, md: 10 }}>
       <Head>
@@ -20,38 +22,29 @@ const Index: NextPage = () => {
               .map((repo) => JSON.stringify(repo))
               .includes(JSON.stringify(newRepo))
           ) {
-            setError(null);
             setRepos((repos) => [...repos, newRepo]);
           }
         }}
-        isError={!!error}
       />
-      <HStack
-        maxW="100%"
-        overflow="scroll"
-        align="start"
-        className="hide-scrollbar"
-      >
+      <Wrap maxW="100%" align="start" justify="center" wrap="wrap" spacing={5}>
         {repos.map((repo, i) => (
-          <RepoCard
-            {...repo}
-            key={i}
-            id={i}
-            onError={setError}
-            onClose={(key) =>
-              setRepos((repos) => [
-                ...repos.slice(0, key),
-                ...repos.slice(key + 1),
-              ])
-            }
-          />
+          <WrapItem key={i} h="100%">
+            <RepoCard
+              res={repo}
+              id={i}
+              onClose={(key) =>
+                setRepos((repos) => [
+                  ...repos.slice(0, key),
+                  ...repos.slice(key + 1),
+                ])
+              }
+            />
+          </WrapItem>
         ))}
-      </HStack>
-      <Text color="gray.500">
-        {repos.length
-          ? "Focus on cards and use Left and Right arrow keys to scroll horizontally"
-          : "Enter a repository above to get started!"}
-      </Text>
+      </Wrap>
+      {repos.length ? null : (
+        <Text color="gray.500">Enter a repository above to get started!</Text>
+      )}
     </VStack>
   );
 };

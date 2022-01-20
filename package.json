@@ -13,6 +13,7 @@
     "@emotion/styled": "^11",
     "@fontsource/chivo": "^4.5.0",
     "@fontsource/inter": "^4.5.1",
+    "date-fns": "^2.28.0",
     "framer-motion": "^5",
     "next": "12.0.8",
     "octokit": "^1.7.1",

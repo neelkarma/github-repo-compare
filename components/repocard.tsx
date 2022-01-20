@@ -1,19 +1,17 @@
-import { FC } from "react";
-import { useRepo } from "../lib/userepo";
+import { FC, ReactNode } from "react";
 import {
   Text,
   Heading,
   HStack,
-  Spinner,
   VStack,
   Tag,
-  Box,
-  useToken,
   Wrap,
   WrapItem,
   Tooltip,
   Center,
   CloseButton,
+  TagLeftIcon,
+  TagLabel,
 } from "@chakra-ui/react";
 import {
   IoStar,
@@ -23,42 +21,24 @@ import {
   IoCopy,
   IoReceipt,
   IoRadioButtonOn,
+  IoTime,
+  IoTimer,
+  IoCodeSlash,
 } from "react-icons/io5";
+import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import { formatDistance } from "date-fns";
+import { IconType } from "react-icons";
 
 export const RepoCard: FC<{
-  owner: string;
-  repo: string;
+  res: RestEndpointMethodTypes["repos"]["get"]["response"];
   id: number;
   onClose: (key: number) => void;
-  onError: (error: any) => void;
-}> = ({ owner, repo, id, onClose, onError }) => {
-  const { res, error } = useRepo({ owner, repo });
-  if (error) {
-    console.log(error);
-    onError(error);
-    onClose(id);
-    return null;
-  }
-  if (!res)
-    return (
-      <Center
-        w="25rem"
-        h="100%"
-        minH="25rem"
-        bgColor="gray.700"
-        borderColor="gray.600"
-        borderWidth="1px"
-        borderRadius={15}
-        p={7}
-      >
-        <Spinner />
-      </Center>
-    );
+}> = ({ res, id, onClose }) => {
   const {
+    full_name,
     stargazers_count: stars,
     forks_count: forks,
     description,
-    topics,
     archived: isArchived,
     fork: isFork,
     open_issues_count: issues,
@@ -66,71 +46,22 @@ export const RepoCard: FC<{
     clone_url: url,
     watchers_count: watchers,
     license: licenseObject,
+    language,
+    created_at: createdAt,
+    updated_at: updatedAt,
   } = res.data;
-  const license = licenseObject?.name;
+  const now = Date.now();
+  const created = formatDistance(new Date(createdAt), now, { addSuffix: true });
+  const lastUpdated = formatDistance(new Date(updatedAt), now, {
+    addSuffix: true,
+  });
 
-  return (
-    <BaseRepoCard
-      {...{
-        owner,
-        repo,
-        stars,
-        forks,
-        description,
-        topics,
-        isArchived,
-        isFork,
-        issues,
-        isTemplate,
-        url,
-        watchers,
-        license,
-      }}
-      onClose={() => onClose(id)}
-    />
-  );
-};
-
-const BaseRepoCard: FC<{
-  isArchived: boolean;
-  isTemplate?: boolean;
-  isFork: boolean;
-  topics?: string[];
-  owner: string;
-  repo: string;
-  stars: number;
-  forks: number;
-  watchers: number;
-  issues: number;
-  description: string | null;
-  url: string;
-  license?: string;
-  onClose: () => void;
-}> = ({
-  isArchived,
-  isTemplate,
-  isFork,
-  topics,
-  owner,
-  repo,
-  stars,
-  watchers,
-  forks,
-  issues,
-  description,
-  url,
-  license,
-  onClose,
-}) => {
-  const [starColor, issueColor] = useToken("colors", [
-    "yellow.400",
-    "green.400",
-  ]);
-
+  const [owner, repo] = full_name.split("/");
+  const license = licenseObject?.spdx_id;
   return (
     <Center
       w="25rem"
-      minH="100%"
+      h="100%"
       textAlign="center"
       bgColor="gray.700"
       borderColor="gray.600"
@@ -139,23 +70,14 @@ const BaseRepoCard: FC<{
       p={7}
       pt={4}
     >
-      <VStack>
-        <CloseButton size="lg" onClick={onClose} />
+      <VStack gap={1}>
+        <CloseButton size="lg" onClick={() => onClose(id)} />
         <Heading fontSize="1.5rem">
           <a href={url}>
             {owner}/{repo}
           </a>
         </Heading>
         {description ? <Text color="gray.400">{description}</Text> : null}
-        {topics ? (
-          <Wrap justify="center">
-            {topics.map((topic, i) => (
-              <WrapItem key={i}>
-                <Tag>{topic}</Tag>
-              </WrapItem>
-            ))}
-          </Wrap>
-        ) : null}
         <HStack fontSize="1.2rem">
           {isArchived ? (
             <Tooltip label="Archived">
@@ -179,37 +101,57 @@ const BaseRepoCard: FC<{
             </Tooltip>
           ) : null}
         </HStack>
-        <VStack fontSize="1.5rem">
-          <Tooltip label="Stars">
+        <Wrap justify="center">
+          <SmallStat label="Stars" content={stars} icon={IoStar} />
+          <SmallStat label="Forks" content={forks} icon={IoGitNetwork} />
+          <SmallStat label="Watchers" content={watchers} icon={IoEye} />
+          <SmallStat
+            label="Open Issues"
+            content={issues}
+            icon={IoRadioButtonOn}
+          />
+          <SmallStat
+            label="License"
+            content={license === "NOASSERTION" ? "Other" : license ?? "None"}
+            icon={IoReceipt}
+          />
+
+          <SmallStat
+            label="Language"
+            content={language ?? "None"}
+            icon={IoCodeSlash}
+          />
+        </Wrap>
+        <VStack fontSize="1.25rem">
+          <Tooltip label="Last Updated">
             <HStack>
-              <IoStar style={{ color: starColor }} />
-              <Text>{stars}</Text>
+              <IoTimer />
+              <Text>{lastUpdated}</Text>
             </HStack>
           </Tooltip>
-          <Tooltip label="Forks">
+          <Tooltip label="Created">
             <HStack>
-              <IoGitNetwork />
-              <Text>{forks}</Text>
-            </HStack>
-          </Tooltip>
-          <Tooltip label="Watchers">
-            <HStack>
-              <IoEye />
-              <Text>{watchers}</Text>
-            </HStack>
-          </Tooltip>
-          <Tooltip label="Open Issues">
-            <HStack>
-              <IoRadioButtonOn style={{ color: issueColor }} />
-              <Text>{issues}</Text>
+              <IoTime />
+              <Text>{created}</Text>
             </HStack>
           </Tooltip>
         </VStack>
-        <HStack>
-          <IoReceipt />
-          <Text>{license ?? "No License"}</Text>
-        </HStack>
       </VStack>
     </Center>
   );
 };
+
+const SmallStat: FC<{ label: string; content: ReactNode; icon: IconType }> = ({
+  label,
+  content,
+  icon,
+}) => (
+  <WrapItem>
+    <Tooltip label={label}>
+      <Tag size="lg">
+        <TagLeftIcon as={icon} />
+        <TagLabel>{content}</TagLabel>
+      </Tag>
+    </Tooltip>
+  </WrapItem>
+);
