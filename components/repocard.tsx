@@ -48,11 +48,11 @@ export const RepoCard: FC<{
     license: licenseObject,
     language,
     created_at: createdAt,
-    updated_at: updatedAt,
+    pushed_at: pushedAt,
   } = res.data;
   const now = Date.now();
   const created = formatDistance(new Date(createdAt), now, { addSuffix: true });
-  const lastUpdated = formatDistance(new Date(updatedAt), now, {
+  const lastPushed = formatDistance(new Date(pushedAt), now, {
     addSuffix: true,
   });
 
@@ -123,10 +123,10 @@ export const RepoCard: FC<{
           />
         </Wrap>
         <VStack fontSize="1.25rem">
-          <Tooltip label="Last Updated">
+          <Tooltip label="Last Pushed">
             <HStack>
               <IoTimer />
-              <Text>{lastUpdated}</Text>
+              <Text>{lastPushed}</Text>
             </HStack>
           </Tooltip>
           <Tooltip label="Created">
